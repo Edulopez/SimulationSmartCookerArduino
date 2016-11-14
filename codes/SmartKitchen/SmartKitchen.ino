@@ -3,24 +3,10 @@ void setup() {
 
 }
 
-class Test
-{
-  public:
-    int klk();
-};
-
-int Test::klk()
-{
-  return 0;
-} 
-
-
-
 // Read the switch and get the value of the intensity from 0 to 3
 int PowerSwitchCheck()
 {
-  Test p;
-  return p.klk();
+ return 0;
 }
 
 //Sound feedback depending on the power value
