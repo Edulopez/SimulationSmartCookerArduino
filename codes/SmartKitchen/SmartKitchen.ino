@@ -2,7 +2,39 @@
 int LowLedRing = 9;           // the PWM pin the LED is attached to
 int brightness = 0;    // how bright the LED is
 int fadeAmount = 5;    // how many points to fade the LED by
+int RingHeatDelay = 30;
 
+class HeatRing
+{
+  int Pin;
+
+
+  public:
+
+    HeatRing(int pin)
+    {
+      Pin = pin; 
+    }
+    void Heat(bool heat = true)
+    {
+      // set the brightness of pin 9:
+      analogWrite(Pin, brightness);
+    
+      // change the brightness for next time through the loop:
+      brightness = brightness + fadeAmount;
+    
+      // reverse the direction of the fading at the ends of the fade:
+      if (brightness <= 0 || brightness >= 255) {
+        fadeAmount = -fadeAmount;
+      }
+      // wait to see the dimming effect
+      delay(RingHeatDelay);
+    }
+};
+
+HeatRing hh (9);
+HeatRing h1 (10);
+HeatRing h2 (11);
 void setup() {
   
  // declare pin 9 to be an output:
@@ -36,7 +68,22 @@ void LedPowerModule(int powerValue)
 //Simulate the heating and cooling process of the leds
 void HeatSimulator(int powerValue)
 {
-  
+   // put your main code here, to run repeatedly:
+  Serial.print(PowerSwitchCheck());
+
+
+  // set the brightness of pin 9:
+  analogWrite(LowLedRing, brightness);
+
+  // change the brightness for next time through the loop:
+  brightness = brightness + fadeAmount;
+
+  // reverse the direction of the fading at the ends of the fade:
+  if (brightness <= 0 || brightness >= 255) {
+    fadeAmount = -fadeAmount;
+  }
+  // wait for 30 milliseconds to see the dimming effect
+  delay(RingHeatDelay);
 }
 
 // Control the intensity  or amount of heat rings on
@@ -64,20 +111,7 @@ void  PanCheck()
 
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  Serial.print(PowerSwitchCheck());
-
-
-  // set the brightness of pin 9:
-  analogWrite(LowLedRing, brightness);
-
-  // change the brightness for next time through the loop:
-  brightness = brightness + fadeAmount;
-
-  // reverse the direction of the fading at the ends of the fade:
-  if (brightness <= 0 || brightness >= 255) {
-    fadeAmount = -fadeAmount;
-  }
-  // wait for 30 milliseconds to see the dimming effect
-  delay(10);
+ hh.Heat();
+ h1.Heat();
+ h2.Heat();
 }
