@@ -1,50 +1,101 @@
 
 int LowLedRing = 9;           // the PWM pin the LED is attached to
-int brightness = 0;    // how bright the LED is
 int fadeAmount = 5;    // how many points to fade the LED by
 int RingHeatDelay = 30;
 
 class HeatRing
 {
   int Pin;
-
-
+  int Brightness = 0;
+  int FadeAmount;
+  int HeatDelay;
   public:
 
     HeatRing(int pin)
     {
-      Pin = pin; 
+      HeatRing(pin,5,30); 
     }
-    void Heat(bool heat = true)
+
+    HeatRing(int pin, int fadeAmount, int heatDelay)
     {
-      // set the brightness of pin 9:
-      analogWrite(Pin, brightness);
+      Pin = pin; 
+      FadeAmount = fadeAmount;
+      HeatDelay = heatDelay;
+    }
+
+    HeatRing(int pin, int fadeAmount, int heatDelay, int brightness)
+    {
+      Pin = pin; 
+      FadeAmount = fadeAmount;
+      HeatDelay = heatDelay;
+      Brightness = brightness;
+    }
+    bool IsHot()
+    {
+       // set the brightness of pin 9:
+      analogWrite(Pin, Brightness);
     
       // change the brightness for next time through the loop:
-      brightness = brightness + fadeAmount;
+      Brightness = Brightness + FadeAmount;
     
       // reverse the direction of the fading at the ends of the fade:
-      if (brightness <= 0 || brightness >= 255) {
-        fadeAmount = -fadeAmount;
+      if (Brightness <= 0 || Brightness >= 255) {
+        FadeAmount = -FadeAmount;
       }
-      // wait to see the dimming effect
-      delay(RingHeatDelay);
+       return Brightness > 0;
     }
+    
+    void Heat(bool heat = true)
+    {
+      if(heat == false) return 0;
+      analogWrite(Pin, Brightness);
+      
+      if( Brightness >= 0 && Brightness < 255)
+      {
+        if(heat == false)
+          Brightness += (FadeAmount * -1); 
+        else
+          Brightness += FadeAmount;
+
+        Serial.print((FadeAmount * -1));
+        Serial.print("--");
+        Serial.print("\n");
+      } 
+      if ( Brightness < 0) Brightness = 0;
+      
+      //Serial.print(Pin);
+      //Serial.print("--");
+      //Serial.print(Brightness);
+      //Serial.print("\n");
+      // wait to see the dimming effect
+      delay(HeatDelay);
+    }
+    
 };
 
-HeatRing hh (9);
-HeatRing h1 (10);
-HeatRing h2 (11);
+HeatRing hh (9,fadeAmount,RingHeatDelay,0);
+HeatRing h1 (10,fadeAmount,RingHeatDelay,0);
+HeatRing h2 (11,fadeAmount,RingHeatDelay,255);
+
 void setup() {
   
  // declare pin 9 to be an output:
-  pinMode(LowLedRing, OUTPUT);
+ Serial.begin(9600);
 }
 
 // Read the switch and get the value of the intensity from 0 to 3
 int PowerSwitchCheck()
 {
- return 0;
+ return 2;
+}
+
+void BurnerActions()
+{
+ int powerValue = PowerSwitchCheck(); 
+ 
+ PowerVoiceFeedback(powerValue);
+ PowerVisualFeedback(powerValue);
+ LedPowerModule(powerValue);
 }
 
 //Sound feedback depending on the power value
@@ -62,28 +113,17 @@ void PowerVisualFeedback(int powerValue)
 // Control the intensity and the number of heat rings on
 void LedPowerModule(int powerValue)
 {
-  
+   hh.Heat( powerValue > 0);
+   h1.Heat( powerValue > 1);
+   h2.Heat( powerValue > 2);
+   
+  HeatSimulator(powerValue);
+  IntensitySimulator(powerValue);
 }
 
 //Simulate the heating and cooling process of the leds
 void HeatSimulator(int powerValue)
 {
-   // put your main code here, to run repeatedly:
-  Serial.print(PowerSwitchCheck());
-
-
-  // set the brightness of pin 9:
-  analogWrite(LowLedRing, brightness);
-
-  // change the brightness for next time through the loop:
-  brightness = brightness + fadeAmount;
-
-  // reverse the direction of the fading at the ends of the fade:
-  if (brightness <= 0 || brightness >= 255) {
-    fadeAmount = -fadeAmount;
-  }
-  // wait for 30 milliseconds to see the dimming effect
-  delay(RingHeatDelay);
 }
 
 // Control the intensity  or amount of heat rings on
@@ -100,6 +140,7 @@ void ProximityCheck()
 // Check is something is boiling and gives feedbacks
 void BoilingCheck()
 {
+  
 }
 
 // Check if a pan is on the burner
@@ -111,7 +152,5 @@ void  PanCheck()
 
 
 void loop() {
- hh.Heat();
- h1.Heat();
- h2.Heat();
+ BurnerActions();
 }
