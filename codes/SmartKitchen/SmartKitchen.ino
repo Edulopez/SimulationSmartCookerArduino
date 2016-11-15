@@ -1,14 +1,15 @@
 
 int LowLedRing = 9;           // the PWM pin the LED is attached to
-int fadeAmount = 5;    // how many points to fade the LED by
-int RingHeatDelay = 30;
-
+int fadeAmount = 1;    // how many points to fade the LED by
+int RingHeatDelay = 500;
+int MaxHeat =255;
 class HeatRing
 {
   int Pin;
   int Brightness = 0;
   int FadeAmount;
   int HeatDelay;
+  int CoolingDelay;
   public:
 
     HeatRing(int pin)
@@ -23,58 +24,50 @@ class HeatRing
       HeatDelay = heatDelay;
     }
 
-    HeatRing(int pin, int fadeAmount, int heatDelay, int brightness)
+    HeatRing(int pin, int fadeAmount, int heatDelay, int coolingDelay, int brightness)
     {
       Pin = pin; 
       FadeAmount = fadeAmount;
       HeatDelay = heatDelay;
       Brightness = brightness;
+      CoolingDelay = coolingDelay;
     }
     bool IsHot()
     {
-       // set the brightness of pin 9:
-      analogWrite(Pin, Brightness);
-    
-      // change the brightness for next time through the loop:
-      Brightness = Brightness + FadeAmount;
-    
-      // reverse the direction of the fading at the ends of the fade:
-      if (Brightness <= 0 || Brightness >= 255) {
-        FadeAmount = -FadeAmount;
-      }
        return Brightness > 0;
     }
     
     void Heat(bool heat = true)
     {
+       Serial.print(Pin);
+      Serial.print("--");
+      Serial.print(Brightness);
+      Serial.print("\n");
       analogWrite(Pin, Brightness);
       
-      if( Brightness >= 0 && Brightness < 255)
-      {
-        if(heat == false)
-          Brightness -= FadeAmount; 
-        else
-          Brightness += FadeAmount;
-
-        Serial.print((FadeAmount * -1));
-        Serial.print("--");
-        Serial.print("\n");
-      } 
-      if ( Brightness < 0) Brightness = 0;
-      
-      //Serial.print(Pin);
-      //Serial.print("--");
-      //Serial.print(Brightness);
-      //Serial.print("\n");
       // wait to see the dimming effect
       delay(HeatDelay);
+      
+      
+      if(!heat && !IsHot()) return;
+      if(heat && Brightness == MaxHeat) return;
+      
+      if( Brightness >= 0 && Brightness <= MaxHeat)
+      {
+        if(heat == false)
+          Brightness -= FadeAmount ; 
+        else
+          Brightness += FadeAmount;
+      } 
+      if ( Brightness < 0) Brightness = 0;
+      else if (Brightness > MaxHeat) Brightness = MaxHeat;
     }
     
 };
 
-HeatRing hh (9,fadeAmount,RingHeatDelay,0);
-HeatRing h1 (10,fadeAmount,RingHeatDelay,0);
-HeatRing h2 (11,fadeAmount,RingHeatDelay,255);
+HeatRing hh (9,fadeAmount,1,RingHeatDelay,0);
+HeatRing h1 (10,fadeAmount,1,RingHeatDelay,50);
+HeatRing h2 (11,fadeAmount,1,RingHeatDelay,255);
 
 void setup() {
   
@@ -112,6 +105,8 @@ void PowerVisualFeedback(int powerValue)
 // Control the intensity and the number of heat rings on
 void LedPowerModule(int powerValue)
 {
+  //Simulate the heating and cooling process of the leds
+  // Control the intensity  or amount of heat rings on
    hh.Heat( powerValue > 0);
    h1.Heat( powerValue > 1);
    h2.Heat( powerValue > 2);
