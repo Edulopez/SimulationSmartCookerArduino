@@ -47,13 +47,12 @@ class HeatRing
     
     void Heat(bool heat = true)
     {
-      if(heat == false) return 0;
       analogWrite(Pin, Brightness);
       
       if( Brightness >= 0 && Brightness < 255)
       {
         if(heat == false)
-          Brightness += (FadeAmount * -1); 
+          Brightness -= FadeAmount; 
         else
           Brightness += FadeAmount;
 
@@ -148,8 +147,6 @@ void  PanCheck()
 {
   
 }
-
-
 
 void loop() {
  BurnerActions();
