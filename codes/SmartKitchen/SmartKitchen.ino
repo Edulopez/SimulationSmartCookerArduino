@@ -36,18 +36,21 @@ class HeatRing
     {
        return Brightness > 0;
     }
+
     
     void Heat(bool heat = true)
     {
-       Serial.print(Pin);
+      Serial.print(Pin);
       Serial.print("--");
       Serial.print(Brightness);
       Serial.print("\n");
       analogWrite(Pin, Brightness);
       
       // wait to see the dimming effect
-      delay(HeatDelay);
-      
+      if(heat)
+        delay(HeatDelay);
+      else
+        delay(CoolingDelay);
       
       if(!heat && !IsHot()) return;
       if(heat && Brightness == MaxHeat) return;
@@ -65,9 +68,9 @@ class HeatRing
     
 };
 
-HeatRing hh (9,fadeAmount,1,RingHeatDelay,0);
-HeatRing h1 (10,fadeAmount,1,RingHeatDelay,50);
-HeatRing h2 (11,fadeAmount,1,RingHeatDelay,255);
+HeatRing LowHeatRing (9,fadeAmount,1,RingHeatDelay,0);
+HeatRing MidHeatRing (10,fadeAmount,1,RingHeatDelay,0);
+HeatRing HighHeatRing (11,fadeAmount,1,RingHeatDelay,255);
 
 void setup() {
   
@@ -78,7 +81,7 @@ void setup() {
 // Read the switch and get the value of the intensity from 0 to 3
 int PowerSwitchCheck()
 {
- return 2;
+ return 3;
 }
 
 void BurnerActions()
@@ -107,9 +110,9 @@ void LedPowerModule(int powerValue)
 {
   //Simulate the heating and cooling process of the leds
   // Control the intensity  or amount of heat rings on
-   hh.Heat( powerValue > 0);
-   h1.Heat( powerValue > 1);
-   h2.Heat( powerValue > 2);
+   LowHeatRing.Heat( powerValue > 0);
+   MidHeatRing.Heat( powerValue > 1);
+   HighHeatRing.Heat( powerValue > 2);
    
   HeatSimulator(powerValue);
   IntensitySimulator(powerValue);
@@ -129,6 +132,10 @@ void IntensitySimulator(int powerValue)
 // Check if someone is close to the burner and give feedbacks
 void ProximityCheck()
 {
+  if(LowHeatRing.IsHot())
+  {
+    // do something
+  }
 }
 
 // Check is something is boiling and gives feedbacks
