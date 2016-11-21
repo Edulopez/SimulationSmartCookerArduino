@@ -1,8 +1,10 @@
 
 int LowLedRing = 9;           // the PWM pin the LED is attached to
 int fadeAmount = 1;    // how many points to fade the LED by
-int RingHeatDelay = 500;
+int RingHeatDelay = 30;
+int RingCoolDelay = 200;
 int MaxHeat =255;
+
 class HeatRing
 {
   int Pin;
@@ -10,20 +12,18 @@ class HeatRing
   int FadeAmount;
   int HeatDelay;
   int CoolingDelay;
+  
   public:
-
     HeatRing(int pin)
     {
       HeatRing(pin,5,30); 
     }
-
     HeatRing(int pin, int fadeAmount, int heatDelay)
     {
       Pin = pin; 
       FadeAmount = fadeAmount;
       HeatDelay = heatDelay;
     }
-
     HeatRing(int pin, int fadeAmount, int heatDelay, int coolingDelay, int brightness)
     {
       Pin = pin; 
@@ -36,8 +36,6 @@ class HeatRing
     {
        return Brightness > 0;
     }
-
-    
     void Heat(bool heat = true)
     {
       Serial.print(Pin);
@@ -65,12 +63,11 @@ class HeatRing
       if ( Brightness < 0) Brightness = 0;
       else if (Brightness > MaxHeat) Brightness = MaxHeat;
     }
-    
 };
 
-HeatRing LowHeatRing (9,fadeAmount,1,RingHeatDelay,0);
-HeatRing MidHeatRing (10,fadeAmount,1,RingHeatDelay,0);
-HeatRing HighHeatRing (11,fadeAmount,1,RingHeatDelay,255);
+HeatRing LowHeatRing (9,fadeAmount,RingHeatDelay,RingCoolDelay,0);
+HeatRing MidHeatRing (10,fadeAmount,RingHeatDelay,RingCoolDelay,255);
+HeatRing HighHeatRing (11,fadeAmount,RingHeatDelay,RingCoolDelay,255);
 
 void setup() {
   
@@ -81,7 +78,7 @@ void setup() {
 // Read the switch and get the value of the intensity from 0 to 3
 int PowerSwitchCheck()
 {
- return 3;
+ return 1;
 }
 
 void BurnerActions()
@@ -90,6 +87,10 @@ void BurnerActions()
  
  PowerVoiceFeedback(powerValue);
  PowerVisualFeedback(powerValue);
+ BoilingCheck();
+ PanCheck();
+ ProximityCheck();
+ 
  LedPowerModule(powerValue);
 }
 
