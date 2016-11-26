@@ -1,10 +1,11 @@
 
 
-#define MaxHeat 255
-
+#define MAXHEAT 255
+#define MAXSWITCHREADS 2
+#define FADEAMOUNT 1 // how many points to fade the LED by
 
 int LowLedRing = 9;           // the PWM pin the LED is attached to
-int fadeAmount = 1;    // how many points to fade the LED by
+  
 int RingHeatDelay = 30;
 int RingCoolDelay = 50;
 
@@ -17,16 +18,6 @@ class HeatRing
   int CoolingDelay;
   
   public:
-    HeatRing(int pin)
-    {
-      HeatRing(pin,5,30); 
-    }
-    HeatRing(int pin, int fadeAmount, int heatDelay)
-    {
-      Pin = pin; 
-      FadeAmount = fadeAmount;
-      HeatDelay = heatDelay;
-    }
     HeatRing(int pin, int fadeAmount, int heatDelay, int coolingDelay, int brightness)
     {
       Pin = pin; 
@@ -37,14 +28,16 @@ class HeatRing
     }
     bool IsHot()
     {
+      
        return Brightness > 0;
     }
+    // Heat the LEDs
     void Heat(bool heat = true)
     {
-      Serial.print(Pin);
-      Serial.print("--");
-      Serial.print(Brightness);
-      Serial.print("\n");
+      //Serial.print(Pin);
+      //Serial.print("--");
+      //Serial.print(Brightness);
+      //Serial.print("\n");
       analogWrite(Pin, Brightness);
       
       // wait to see the dimming effect
@@ -54,9 +47,9 @@ class HeatRing
         delay(CoolingDelay);
       
       if(!heat && !IsHot()) return;
-      if(heat && Brightness == MaxHeat) return;
+      if(heat && Brightness == MAXHEAT) return;
       
-      if( Brightness >= 0 && Brightness <= MaxHeat)
+      if( Brightness >= 0 && Brightness <= MAXHEAT)
       {
         if(heat == false)
           Brightness -= FadeAmount ; 
@@ -64,7 +57,7 @@ class HeatRing
           Brightness += FadeAmount;
       } 
       if ( Brightness < 0) Brightness = 0;
-      else if (Brightness > MaxHeat) Brightness = MaxHeat;
+      else if (Brightness > MAXHEAT) Brightness = MAXHEAT;
     }
 };
 
@@ -98,6 +91,7 @@ class Switch
       return switchValues; 
     }
 
+    // Get the value of the switch until it get stabilized without noise
     int ReadValue(int maxReads)
     {
        int mainValue = 0 ;
@@ -115,20 +109,23 @@ class Switch
 
     int ConvertSwitchValueToIntensityValue(int switchValues)
     {
+      // If all the bits are on it means off
       if(switchValues == OffValue)
         return 0; // Off
       
       int intensityValue = 1;
       for(int i = 0 ; i < PinsSize ; ++i)
       {
+        // Check rigthmost bit to check if is marked
         if((switchValues & 1) == 0)
           return intensityValue;
-        
+
+        // rigth shift all the bits
         switchValues = switchValues >> 1;
         intensityValue++;
       }
 
-      return 0; // off
+      return 0; // off as a base case
     }
     
   public:
@@ -155,12 +152,12 @@ class Switch
 
   
 };
-HeatRing LowHeatRing (9,fadeAmount,RingHeatDelay,RingCoolDelay,0);
-HeatRing MidHeatRing (10,fadeAmount,RingHeatDelay,RingCoolDelay,0);
-HeatRing HighHeatRing (11,fadeAmount,RingHeatDelay,RingCoolDelay,0);
+HeatRing LowHeatRing (9,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing MidHeatRing (10,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing HighHeatRing (11,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 
 
-Switch ss ((int[]){2,4,7},3,2);
+Switch Switch1 ((int[]){2,4,7},3,MAXSWITCHREADS);
 void setup() {
 
   
@@ -172,21 +169,21 @@ void setup() {
 // Read the switch and get the value of the intensity from 0 to 3
 int PowerSwitchCheck()
 {
-  
- return ss.GetIntensity();
+ return Switch1.GetIntensity();
 }
 
+// Run all the actions of the burner
 void BurnerActions()
 {
  int powerValue = PowerSwitchCheck(); 
  
- PowerVoiceFeedback(powerValue);
- PowerVisualFeedback(powerValue);
- BoilingCheck();
- PanCheck();
- ProximityCheck();
+  PowerVoiceFeedback(powerValue);
+  PowerVisualFeedback(powerValue);
+  BoilingCheck();
+  PanCheck();
+  ProximityCheck();
  
- LedPowerModule(powerValue);
+  LedPowerModule(powerValue);
 }
 
 //Sound feedback depending on the power value
@@ -209,20 +206,6 @@ void LedPowerModule(int powerValue)
    LowHeatRing.Heat( powerValue > 0);
    MidHeatRing.Heat( powerValue > 1);
    HighHeatRing.Heat( powerValue > 2);
-   
-  HeatSimulator(powerValue);
-  IntensitySimulator(powerValue);
-}
-
-//Simulate the heating and cooling process of the leds
-void HeatSimulator(int powerValue)
-{
-}
-
-// Control the intensity  or amount of heat rings on
-void IntensitySimulator(int powerValue)
-{
-  
 }
 
 // Check if someone is close to the burner and give feedbacks
