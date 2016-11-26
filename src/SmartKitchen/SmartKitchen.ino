@@ -72,11 +72,21 @@ class Switch
 { 
   private:
     const static int MaxPinsSize = 4;
-    int OffValue;
-    int Pins[MaxPinsSize]={0,0,0};
-    int PinsSize;
-    int MaxReads;
     
+    // If all the bytes are on it means the switch is on OFF ( 111 = OFF )
+    int OffValue;
+
+    // Pins numbers on the arduino
+    int Pins[MaxPinsSize]={0,0,0};
+
+    // Numbers of pings used in the pins numers array
+    int PinsSize;
+
+    // Maximun amount of reading to get a precise reading of the switch
+    int MaxReads;
+
+
+    // Get The value of the switch
     int ReadValue()
     {
       int switchValues = 0;
@@ -85,20 +95,40 @@ class Switch
         switchValues = switchValues << 1;
         switchValues |= digitalRead(Pins[i]);
       }
+      return switchValues; 
+    }
 
+    int ReadValue(int maxReads)
+    {
+       int mainValue = 0 ;
+      for(int i = 0 ; i < MaxReads ; i++)
+      {
+        mainValue = ReadValue();
+        delay(10);
+        int value = ReadValue();
+        
+        if(mainValue == value)
+          return mainValue;
+      }
+      return mainValue;
+    }
+
+    int ConvertSwitchValueToIntensityValue(int switchValues)
+    {
       if(switchValues == OffValue)
-        return 0;
-
-      int res = 1;
+        return 0; // Off
+      
+      int intensityValue = 1;
       for(int i = 0 ; i < PinsSize ; ++i)
       {
         if((switchValues & 1) == 0)
-          return res;
+          return intensityValue;
+        
         switchValues = switchValues >> 1;
-        res++;
+        intensityValue++;
       }
-      
-      return 0; 
+
+      return 0; // off
     }
     
   public:
@@ -115,11 +145,12 @@ class Switch
       MaxReads = maxReads;
     }
 
-    int GetValue()
+    // Get the intensity marked in the switch and ensure to read it
+    int GetIntensity()
     {
-      Serial.print(ReadValue());
+      Serial.print(ConvertSwitchValueToIntensityValue(ReadValue(MaxReads)));
       Serial.print("\n");
-      return ReadValue();
+      return ConvertSwitchValueToIntensityValue(ReadValue(MaxReads));
     }
 
   
@@ -141,7 +172,7 @@ void setup() {
 // Read the switch and get the value of the intensity from 0 to 3
 int PowerSwitchCheck()
 {
-  ss.GetValue();
+  ss.GetIntensity();
  return 3;
 }
 
