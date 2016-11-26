@@ -6,7 +6,7 @@
 int LowLedRing = 9;           // the PWM pin the LED is attached to
 int fadeAmount = 1;    // how many points to fade the LED by
 int RingHeatDelay = 30;
-int RingCoolDelay = 200;
+int RingCoolDelay = 50;
 
 class HeatRing
 {
@@ -148,16 +148,16 @@ class Switch
     // Get the intensity marked in the switch and ensure to read it
     int GetIntensity()
     {
-      Serial.print(ConvertSwitchValueToIntensityValue(ReadValue(MaxReads)));
-      Serial.print("\n");
+      //Serial.print(ConvertSwitchValueToIntensityValue(ReadValue(MaxReads)));
+      //Serial.print("\n");
       return ConvertSwitchValueToIntensityValue(ReadValue(MaxReads));
     }
 
   
 };
-//HeatRing LowHeatRing (9,fadeAmount,RingHeatDelay,RingCoolDelay,0);
-//HeatRing MidHeatRing (10,fadeAmount,RingHeatDelay,RingCoolDelay,0);
-//HeatRing HighHeatRing (11,fadeAmount,RingHeatDelay,RingCoolDelay,0);
+HeatRing LowHeatRing (9,fadeAmount,RingHeatDelay,RingCoolDelay,0);
+HeatRing MidHeatRing (10,fadeAmount,RingHeatDelay,RingCoolDelay,0);
+HeatRing HighHeatRing (11,fadeAmount,RingHeatDelay,RingCoolDelay,0);
 
 
 Switch ss ((int[]){2,4,7},3,2);
@@ -172,8 +172,8 @@ void setup() {
 // Read the switch and get the value of the intensity from 0 to 3
 int PowerSwitchCheck()
 {
-  ss.GetIntensity();
- return 3;
+  
+ return ss.GetIntensity();
 }
 
 void BurnerActions()
@@ -186,7 +186,7 @@ void BurnerActions()
  PanCheck();
  ProximityCheck();
  
- //LedPowerModule(powerValue);
+ LedPowerModule(powerValue);
 }
 
 //Sound feedback depending on the power value
@@ -206,9 +206,9 @@ void LedPowerModule(int powerValue)
 {
   //Simulate the heating and cooling process of the leds
   // Control the intensity  or amount of heat rings on
- //  LowHeatRing.Heat( powerValue > 0);
-  // MidHeatRing.Heat( powerValue > 1);
-   //HighHeatRing.Heat( powerValue > 2);
+   LowHeatRing.Heat( powerValue > 0);
+   MidHeatRing.Heat( powerValue > 1);
+   HighHeatRing.Heat( powerValue > 2);
    
   HeatSimulator(powerValue);
   IntensitySimulator(powerValue);
@@ -228,10 +228,10 @@ void IntensitySimulator(int powerValue)
 // Check if someone is close to the burner and give feedbacks
 void ProximityCheck()
 {
-//  if(LowHeatRing.IsHot())
-  //{
+  if(LowHeatRing.IsHot())
+  {
     // do something
-  //}
+  }
 }
 
 // Check is something is boiling and gives feedbacks
