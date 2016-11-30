@@ -224,9 +224,21 @@ void BoilingCheck()
 }
 
 // Check if a pan is on the burner
-void  PanCheck()
+void PanCheck()
 {
-  
+   int sensorPin = A0;
+   int sensorValue = 0;
+
+   // results are not %100 accurate, but it will do for now
+   sensorValue = analogRead(sensorPin);
+
+   if (sensorValue < 300) {
+   Serial.println("It's on!");
+   }else{
+   }
+   Serial.println("It's off!");
+   delay(100);
+
 }
 
 void loop() {
