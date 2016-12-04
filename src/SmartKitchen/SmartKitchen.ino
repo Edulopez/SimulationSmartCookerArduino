@@ -168,8 +168,7 @@ HeatRing HighHeatRing (HighLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0)
 
 Switch Switch1 (SwitchPins1,PINSSIZE1,MAXSWITCHREADS);
 void setup() {
-
-  
+  pinMode(2,INPUT_PULLUP);
   pinMode(4,INPUT_PULLUP);
   pinMode(7,INPUT_PULLUP);
  Serial.begin(9600);
