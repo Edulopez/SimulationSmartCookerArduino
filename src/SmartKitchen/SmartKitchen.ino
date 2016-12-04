@@ -3,7 +3,12 @@
 #define MAXHEAT 255
 #define MAXSWITCHREADS 2
 #define FADEAMOUNT 1 // how many points to fade the LED by
+#define PANSENSORPIN A0
+#define SpeakerPin 9
+#define MoistureSensorPin 0
 
+#define PINSSIZE1 3
+int SwitchPins1[3] = {2,4,7};
 int LowLedRing = 9;           // the PWM pin the LED is attached to
   
 int RingHeatDelay = 30;
@@ -157,7 +162,7 @@ HeatRing MidHeatRing (10,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 HeatRing HighHeatRing (11,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 
 
-Switch Switch1 ((int[]){2,4,7},3,MAXSWITCHREADS);
+Switch Switch1 (SwitchPins1,PINSSIZE1,MAXSWITCHREADS);
 void setup() {
 
   
@@ -220,17 +225,35 @@ void ProximityCheck()
 // Check is something is boiling and gives feedbacks
 void BoilingCheck()
 {
-  
+  int waterSensorValue;
+  waterSensorValue = analogRead(MoistureSensorPin);
+  Serial.print("moisture sensor reads: ");
+  Serial.println(waterSensorValue);
+
+  int sensor0Reading = analogRead (SpeakerPin); //read input for frequency
+  int frequency = map(sensor0Reading, 0, 1023, 100, 5000);
+  int duration = 3000; //time sound last (ms)
+  /*if (moisture_val > 0){
+    analogWrite(3,255);
+  }
+  else{
+    analogWrite(3,0);
+  }*/
+
+  if (waterSensorValue > 0)
+  {
+    MakeSound(frequency,duration);
+  }
+  delay(500);
 }
 
 // Check if a pan is on the burner
 void PanCheck()
 {
-   int sensorPin = A0;
    int sensorValue = 0;
 
    // results are not %100 accurate, but it will do for now
-   sensorValue = analogRead(sensorPin);
+   sensorValue = analogRead(PANSENSORPIN);
 
    if (sensorValue < 300) {
    Serial.println("It's on!");
@@ -239,6 +262,11 @@ void PanCheck()
    Serial.println("It's off!");
    delay(100);
 
+}
+
+void MakeSound(int frequency,int  duration)
+{
+  tone(SpeakerPin, frequency, duration); //speakerPin, frequency, duration
 }
 
 void loop() {
