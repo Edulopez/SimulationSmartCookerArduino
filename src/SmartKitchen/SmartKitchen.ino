@@ -1,16 +1,20 @@
 
 
-#define MAXHEAT 255
-#define MAXSWITCHREADS 2
-#define FADEAMOUNT 1 // how many points to fade the LED by
+
 #define PANSENSORPIN A0
 #define SpeakerPin 9
 #define MoistureSensorPin 0
 
+#define MAXHEAT 255
+#define MAXSWITCHREADS 2
+#define FADEAMOUNT 1 // how many points to fade the LED by
+#define LowLedRingPin1 9
+#define MidLedRingPin1 10
+#define HighLedRingPin1 11
+
 #define PINSSIZE1 3
 int SwitchPins1[3] = {2,4,7};
-int LowLedRing = 9;           // the PWM pin the LED is attached to
-  
+
 int RingHeatDelay = 30;
 int RingCoolDelay = 50;
 
@@ -157,9 +161,9 @@ class Switch
 
   
 };
-HeatRing LowHeatRing (9,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
-HeatRing MidHeatRing (10,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
-HeatRing HighHeatRing (11,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing LowHeatRing (LowLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing MidHeatRing (MidLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing HighHeatRing (HighLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 
 
 Switch Switch1 (SwitchPins1,PINSSIZE1,MAXSWITCHREADS);
