@@ -211,10 +211,53 @@ void LedPowerModule(int powerValue)
 // Check if someone is close to the burner and give feedbacks
 void ProximityCheck()
 {
+  long duration, inches, cm;
+
+  const int trigPin = 12;
+  const int echoPin = 11;
+  const int ledPin = 6;
+
+  pinMode(trigPin, OUTPUT);
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  inches = microsecondsToInches(duration);
+  cm = microsecondsToCentimeters(duration);
+
+
+  pinMode(echoPin, INPUT);
+
+  duration = pulseIn(echoPin, HIGH);
+  
   if(LowHeatRing.IsHot())
   {
-    // do something
+    analogWrite(ledPin, 0);
   }
+  else
+  {
+    ledValue = 255 - (cm * 3);
+  }
+
+  Serial.print(inches);
+  Serial.print("in, ");
+  Serial.print(cm);
+  Serial.print("cm");
+  Serial.println();
+  delay(100);
+}
+  long microsecondsToInches(long microseconds)
+{
+  return microseconds / 74 / 2;
+}
+ 
+long microsecondsToCentimeters(long microseconds)
+{
+  return microseconds / 29 / 2;
+}
+  
 }
 
 // Check is something is boiling and gives feedbacks
