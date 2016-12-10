@@ -1,19 +1,32 @@
 
 
 
-#define PANSENSORPIN A0
-#define SpeakerPin 9
-#define MoistureSensorPin 0
+
 
 #define MAXHEAT 255
 #define MAXSWITCHREADS 2
 #define FADEAMOUNT 1 // how many points to fade the LED by
+
+/** Arduino pins*/
+
+#define PANSENSORPIN A0
+#define SpeakerPin 8
+#define MoistureSensorPin 0
+
 #define LowLedRingPin1 9
 #define MidLedRingPin1 10
 #define HighLedRingPin1 11
 
-#define PINSSIZE1 3
-int SwitchPins1[3] = {2,4,7};
+#define SwitchPinsSize 3
+#define Switch1Pin1 2
+#define Switch1Pin2 4
+#define Switch1Pin3 7
+
+const int trigPin = 12;
+const int echoPin = 5;
+const int ledPin = 6;
+
+int Switch1Pins[SwitchPinsSize] = {Switch1Pin1,Switch1Pin2,Switch1Pin3};
 
 int RingHeatDelay = 30;
 int RingCoolDelay = 50;
@@ -166,11 +179,11 @@ HeatRing MidHeatRing (MidLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 HeatRing HighHeatRing (HighLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 
 
-Switch Switch1 (SwitchPins1,PINSSIZE1,MAXSWITCHREADS);
+Switch Switch1 (Switch1Pins,SwitchPinsSize,MAXSWITCHREADS);
 void setup() {
-  pinMode(2,INPUT_PULLUP);
-  pinMode(4,INPUT_PULLUP);
-  pinMode(7,INPUT_PULLUP);
+  for(int i =0 ; i <SwitchPinsSize ; i++)
+    pinMode(Switch1Pins[i],INPUT_PULLUP);
+ 
  Serial.begin(9600);
 }
 
@@ -220,11 +233,7 @@ void LedPowerModule(int powerValue)
 void ProximityCheck()
 {
   long duration, inches, cm;
-
-  const int trigPin = 12;
-  const int echoPin = 11;
-  const int ledPin = 6;
-
+  
   pinMode(trigPin, OUTPUT);
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
@@ -234,10 +243,7 @@ void ProximityCheck()
 
   inches = microsecondsToInches(duration);
   cm = microsecondsToCentimeters(duration);
-
-
   pinMode(echoPin, INPUT);
-
   duration = pulseIn(echoPin, HIGH);
   
   if(LowHeatRing.IsHot())
@@ -246,7 +252,7 @@ void ProximityCheck()
   }
   else
   {
-    ledValue = 255 - (cm * 3);
+    //ledValue = 255 - (cm * 3);
   }
 
   Serial.print(inches);
@@ -256,7 +262,7 @@ void ProximityCheck()
   Serial.println();
   delay(100);
 }
-  long microsecondsToInches(long microseconds)
+long microsecondsToInches(long microseconds)
 {
   return microseconds / 74 / 2;
 }
@@ -266,7 +272,6 @@ long microsecondsToCentimeters(long microseconds)
   return microseconds / 29 / 2;
 }
   
-}
 
 // Check is something is boiling and gives feedbacks
 void BoilingCheck()
@@ -297,7 +302,6 @@ void BoilingCheck()
 void PanCheck()
 {
    int sensorValue = 0;
-
    // results are not %100 accurate, but it will do for now
    sensorValue = analogRead(PANSENSORPIN);
 
@@ -307,7 +311,6 @@ void PanCheck()
    }
    Serial.println("It's off!");
    delay(100);
-
 }
 
 void MakeSound(int frequency,int  duration)
