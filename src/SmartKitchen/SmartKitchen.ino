@@ -11,6 +11,7 @@
 
 #define PANSENSORPIN A0
 #define SpeakerPin 8
+#define VoiceSpeakerPin 13
 #define MoistureSensorPin 0
 
 #define LowLedRingPin1 9
@@ -31,6 +32,30 @@ int Switch1Pins[SwitchPinsSize] = {Switch1Pin1,Switch1Pin2,Switch1Pin3};
 int RingHeatDelay = 30;
 int RingCoolDelay = 50;
 
+class VoiceSpeaker
+{
+  
+  private:
+    int Pin;
+    
+  public:
+
+    VoiceSpeaker(int pin)
+    {
+      Pin = pin;
+      pinMode(Pin, OUTPUT);
+    }
+
+    void Play()
+    {
+      Serial.print("Starting voice speaker sound");
+      digitalWrite(Pin, HIGH);
+      delay(3000);
+      digitalWrite(Pin, LOW);
+      Serial.print("Ending voice speaker sound");
+      delay(200);
+    }
+};
 class HeatRing
 {
   int Pin;
@@ -167,22 +192,24 @@ class Switch
     // Get the intensity marked in the switch and ensure to read it
     int GetIntensity()
     {
-      //Serial.print(ConvertSwitchValueToIntensityValue(ReadValue(MaxReads)));
-      //Serial.print("\n");
+      Serial.print(ConvertSwitchValueToIntensityValue(ReadValue(MaxReads)));
+      Serial.print("\n");
       return ConvertSwitchValueToIntensityValue(ReadValue(MaxReads));
     }
 
   
 };
+
 HeatRing LowHeatRing (LowLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 HeatRing MidHeatRing (MidLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 HeatRing HighHeatRing (HighLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 
-
 Switch Switch1 (Switch1Pins,SwitchPinsSize,MAXSWITCHREADS);
+
+VoiceSpeaker VoiceSpeakerModule(VoiceSpeakerPin);
 void setup() {
-  for(int i =0 ; i <SwitchPinsSize ; i++)
-    pinMode(Switch1Pins[i],INPUT_PULLUP);
+  //for(int i =0 ; i <SwitchPinsSize ; i++)
+  //  pinMode(Switch1Pins[i],INPUT_PULLUP);
  
  Serial.begin(9600);
 }
@@ -196,21 +223,20 @@ int PowerSwitchCheck()
 // Run all the actions of the burner
 void BurnerActions()
 {
- int powerValue = PowerSwitchCheck(); 
- 
+  int powerValue = PowerSwitchCheck(); 
   PowerVoiceFeedback(powerValue);
   PowerVisualFeedback(powerValue);
   BoilingCheck();
   PanCheck();
   ProximityCheck();
- 
   LedPowerModule(powerValue);
 }
 
 //Sound feedback depending on the power value
 void PowerVoiceFeedback(int powerValue)
 {
-  
+  if(powerValue > 0)
+    VoiceSpeakerModule.Play();
 }
 
 //Visual feedback depending on the power value
@@ -249,6 +275,7 @@ void ProximityCheck()
   if(LowHeatRing.IsHot())
   {
     analogWrite(ledPin, 0);
+    VoiceSpeakerModule.Play();
   }
   else
   {
