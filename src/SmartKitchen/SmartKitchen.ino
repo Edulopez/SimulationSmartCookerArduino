@@ -174,11 +174,11 @@ class CookerBurner
       HighHeatRing.GetTempeture());
     }
     // Heat the LEDs
-    void Heat(bool heat = true)
+    void Heat(int powerValue)
     {
-      LowHeatRing.Heat (heat);
-      MidHeatRing.Heat (heat);
-      HighHeatRing.Heat(heat);
+      LowHeatRing.Heat (powerValue > 0);
+      MidHeatRing.Heat (powerValue > 1);
+      HighHeatRing.Heat(powerValue > 2);
     }
 };
 
@@ -278,12 +278,18 @@ HeatRing LowHeatRing (LowLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 HeatRing MidHeatRing (MidLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 HeatRing HighHeatRing (HighLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 
+HeatRing LowHeatRing2 (LowLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing MidHeatRing2 (MidLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing HighHeatRing2 (HighLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+
 Switch Switch1 (Switch1Pins,SwitchPinsSize,MAXSWITCHREADS);
 
 VoiceSpeaker VoiceSpeakerModule(VoiceSpeakerPin);
 
 Zwave ZWaveModule = Zwave();
 CookerBurner CookerBurner1(LowHeatRing,MidHeatRing,HighHeatRing);
+CookerBurner CookerBurner2(LowHeatRing2,MidHeatRing2,HighHeatRing2);
+
 void setup() {
   Serial.begin(9600);
 }
