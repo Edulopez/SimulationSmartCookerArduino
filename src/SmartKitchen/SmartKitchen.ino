@@ -150,7 +150,7 @@ class HeatRing
 };
 
 class CookerBurner
-{
+{ 
   HeatRing LowHeatRing;
   HeatRing MidHeatRing;
   HeatRing HighHeatRing;
@@ -245,7 +245,6 @@ class Switch
         switchValues = switchValues >> 1;
         intensityValue++;
       }
-
       return 0; // off as a base case
     }
     
@@ -269,9 +268,7 @@ class Switch
       Serial.print(ConvertSwitchValueToIntensityValue(ReadValue(MaxReads)));
       Serial.print("\n");
       return ConvertSwitchValueToIntensityValue(ReadValue(MaxReads));
-    }
-
-  
+    }  
 };
 
 HeatRing LowHeatRing (LowLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
@@ -283,6 +280,7 @@ HeatRing MidHeatRing2 (MidLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 HeatRing HighHeatRing2 (HighLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 
 Switch Switch1 (Switch1Pins,SwitchPinsSize,MAXSWITCHREADS);
+Switch Switch2 (Switch1Pins,SwitchPinsSize,MAXSWITCHREADS);
 
 VoiceSpeaker VoiceSpeakerModule(VoiceSpeakerPin);
 
@@ -303,18 +301,23 @@ int PowerSwitchCheck()
 // Run all the actions of the burner
 void BurnerActions()
 {
-  int powerValue = PowerSwitchCheck(); 
-  PowerVoiceFeedback(powerValue);
-  PowerVisualFeedback(powerValue);
+  int powerValueSwitch1 = Switch1.GetIntensity();
+  int powerValueSwitch2 = Switch2.GetIntensity(); 
+  
+  PowerVoiceFeedback(powerValueSwitch1+powerValueSwitch2);
+  PowerVisualFeedback(powerValueSwitch1+powerValueSwitch2);
+  
   BoilingCheck();
   PanCheck();
   ProximityCheck();
-  LedPowerModule(powerValue);
+  LedPowerModule(powerValueSwitch1,powerValueSwitch2); 
 }
 void SentZwateData()
 {
   ZWaveModule.SendRingSettings(Switch1.GetIntensity(), 1);
   ZWaveModule.SendRingTempeture(CookerBurner1.GetTempeture(), 1);
+  ZWaveModule.SendRingSettings(Switch2.GetIntensity(), 2);
+  ZWaveModule.SendRingTempeture(CookerBurner2.GetTempeture(), 2);
   ZWaveModule.SendBoilOverData(BoilingCheck);
 }
 //Sound feedback depending on the power value
@@ -327,15 +330,20 @@ void PowerVoiceFeedback(int powerValue)
 //Visual feedback depending on the power value
 void PowerVisualFeedback(int powerValue)
 {
-  
+  if(powerValue > 0)
+  {
+    
+  }
 }
 
 // Control the intensity and the number of heat rings on
-void LedPowerModule(int powerValue)
+void LedPowerModule(int powerValue1,int powerValue2)
 {
   //Simulate the heating and cooling process of the leds
   // Control the intensity  or amount of heat rings on
-   CookerBurner1.Heat(powerValue);
+   
+   CookerBurner1.Heat(powerValue1);
+   CookerBurner2.Heat(powerValue2);
 }
 
 // Check if someone is close to the burner and give feedbacks
@@ -355,7 +363,7 @@ void ProximityCheck()
   pinMode(echoPin, INPUT);
   duration = pulseIn(echoPin, HIGH);
   
-  if(LowHeatRing.IsHot())
+  if(CookerBurner1.IsHot() || CookerBurner2.IsHot())
   {
     analogWrite(ledPin, 0);
     VoiceSpeakerModule.Play();
