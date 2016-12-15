@@ -19,20 +19,32 @@
 #define VoiceSpeakerPin 13
 #define MoistureSensorPin 0
 
+// Heat rings pin
 #define LowLedRingPin1 9
 #define MidLedRingPin1 10
 #define HighLedRingPin1 11
 
+#define LowLedRingPin2 9
+#define MidLedRingPin2 10
+#define HighLedRingPin2 11
+
+// Switch pins
 #define SwitchPinsSize 3
 #define Switch1Pin1 2
 #define Switch1Pin2 4
 #define Switch1Pin3 7
 
+#define Switch2Pin1 2
+#define Switch2Pin2 4
+#define Switch2Pin3 7
+
+//
 const int trigPin = 12;
 const int echoPin = 5;
 const int ledPin = 6;
 
 int Switch1Pins[SwitchPinsSize] = {Switch1Pin1,Switch1Pin2,Switch1Pin3};
+int Switch2Pins[SwitchPinsSize] = {Switch2Pin1,Switch2Pin2,Switch2Pin3};
 
 int RingHeatDelay = 30;
 int RingCoolDelay = 50;
@@ -275,12 +287,12 @@ HeatRing LowHeatRing (LowLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 HeatRing MidHeatRing (MidLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 HeatRing HighHeatRing (HighLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 
-HeatRing LowHeatRing2 (LowLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
-HeatRing MidHeatRing2 (MidLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
-HeatRing HighHeatRing2 (HighLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing LowHeatRing2 (LowLedRingPin2,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing MidHeatRing2 (MidLedRingPin2,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing HighHeatRing2 (HighLedRingPin2,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 
 Switch Switch1 (Switch1Pins,SwitchPinsSize,MAXSWITCHREADS);
-Switch Switch2 (Switch1Pins,SwitchPinsSize,MAXSWITCHREADS);
+Switch Switch2 (Switch2Pins,SwitchPinsSize,MAXSWITCHREADS);
 
 VoiceSpeaker VoiceSpeakerModule(VoiceSpeakerPin);
 
