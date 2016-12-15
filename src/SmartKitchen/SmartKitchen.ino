@@ -3,10 +3,10 @@
 //6 analog inputs
 
 /* Used pins */
-// 2 3 4 5 6 7 8 9 10 11 11 13
+//0 2 3 4 5 6 7 8 9 10 11 11 13 A0 A1 A2 A3 A4 A5
 
 /*Unused pins */
-// 1 14 analogs
+// 
 
 
 #define MAXHEAT 255
@@ -15,18 +15,23 @@
 
 /* Pins */
 #define PANSENSORPIN A0
-#define SpeakerPin 8
-#define VoiceSpeakerPin 13
-#define MoistureSensorPin 0
+#define PANSENSORPIN2 A1
+
+//#define SpeakerPin 8 // THERE ISNT A SPEAKER YET
+
+#define VoiceSpeakerPin 14
+#define WaterSensorPin 0
+
+#define StatusLedPin A5
 
 // Heat rings pin
 #define LowLedRingPin1 9
 #define MidLedRingPin1 10
 #define HighLedRingPin1 11
 
-#define LowLedRingPin2 9
-#define MidLedRingPin2 10
-#define HighLedRingPin2 11
+#define LowLedRingPin2 1
+#define MidLedRingPin2 8
+#define HighLedRingPin2 13
 
 // Switch pins
 #define SwitchPinsSize 3
@@ -34,9 +39,9 @@
 #define Switch1Pin2 4
 #define Switch1Pin3 7
 
-#define Switch2Pin1 2
-#define Switch2Pin2 4
-#define Switch2Pin3 7
+#define Switch2Pin1 A2
+#define Switch2Pin2 A3
+#define Switch2Pin3 A4
 
 //
 const int trigPin = 12;
@@ -302,13 +307,11 @@ CookerBurner CookerBurner2(LowHeatRing2,MidHeatRing2,HighHeatRing2);
 
 void setup() {
   Serial.begin(9600);
+  pinMode(WaterSensorPin, INPUT );
+  pinMode(StatusLedPin, OUTPUT );
 }
 
-// Read the switch and get the value of the intensity from 0 to 3
-int PowerSwitchCheck()
-{
-  return Switch1.GetIntensity();
-}
+
 
 // Run all the actions of the burner
 void BurnerActions()
@@ -319,8 +322,8 @@ void BurnerActions()
   PowerVoiceFeedback(powerValueSwitch1+powerValueSwitch2);
   PowerVisualFeedback(powerValueSwitch1+powerValueSwitch2);
   
-  BoilingCheck();
-  PanCheck();
+  bool isBoiling = BoilingCheck();
+  bool isPan = PanCheck();
   ProximityCheck();
   LedPowerModule(powerValueSwitch1,powerValueSwitch2); 
 }
@@ -344,8 +347,10 @@ void PowerVisualFeedback(int powerValue)
 {
   if(powerValue > 0)
   {
-    
+     digitalWrite(StatusLedPin, HIGH);   // turn the LED on (HIGH is the voltage level)
   }
+  else
+     digitalWrite(StatusLedPin, LOW);   // turn the LED on (HIGH is the voltage level)
 }
 
 // Control the intensity and the number of heat rings on
@@ -404,48 +409,50 @@ long microsecondsToCentimeters(long microseconds)
   
 
 // Check is something is boiling and gives feedbacks
-int BoilingCheck()
+bool BoilingCheck()
 {
   int waterSensorValue;
-  waterSensorValue = analogRead(MoistureSensorPin);
+  waterSensorValue = digitalRead(WaterSensorPin);
   Serial.print("moisture sensor reads: ");
   Serial.println(waterSensorValue);
 
-  int sensor0Reading = analogRead (SpeakerPin); //read input for frequency
-  int frequency = map(sensor0Reading, 0, 1023, 100, 5000);
-  int duration = 3000; //time sound last (ms)
+  //int sensor0Reading = analogRead (SpeakerPin); //read input for frequency
+  //int frequency = map(sensor0Reading, 0, 1023, 100, 5000);
+  //int duration = 3000; //time sound last (ms)
 
-  if (waterSensorValue > 0)
+  if (waterSensorValue == HIGH)
   {
-    MakeSound(frequency,duration);
-    return waterSensorValue;
+    //MakeSound(frequency,duration);
   }
-  delay(500);
+  delay(200);
+  return waterSensorValue == HIGH;
 }
 
 // Check if a pan is on the burner
 bool PanCheck()
 {
    int sensorValue = 0;
+   int sensorValue2 =0;
    // results are not %100 accurate, but it will do for now
    sensorValue = analogRead(PANSENSORPIN);
-   if (sensorValue < 300) 
+   sensorValue2 = analogRead(PANSENSORPIN2);
+   bool res = sensorValue < 300 || sensorValue2 < 300;
+   if (res) 
    {
-    Serial.println("It's on!");
+    Serial.println("There's  a pan on");
    }
    else
    {
-    Serial.println("It's off!");
+    Serial.println("There isn't a pan");
    }
-   return sensorValue < 300;
    delay(100);
+   
+   return res;
 }
 
-void MakeSound(int frequency,int  duration)
-{
-  tone(SpeakerPin, frequency, duration); //speakerPin, frequency, duration
-}
 
-void loop() {
+
+void loop() 
+{ 
  BurnerActions();
 }
