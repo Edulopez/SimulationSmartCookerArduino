@@ -54,6 +54,7 @@ int Switch2Pins[SwitchPinsSize] = {Switch2Pin1,Switch2Pin2,Switch2Pin3};
 int RingHeatDelay = 30;
 int RingCoolDelay = 50;
 
+bool CookerStatus = false;
 class Zwave
 {
   
@@ -338,8 +339,10 @@ void SentZwateData()
 //Sound feedback depending on the power value
 void PowerVoiceFeedback(int powerValue)
 {
-  if(powerValue > 0)
+  if(powerValue > 0 && CookerStatus == false)
     VoiceSpeakerModule.Play();
+
+    CookerStatus = powerValue > 0;
 }
 
 //Visual feedback depending on the power value
