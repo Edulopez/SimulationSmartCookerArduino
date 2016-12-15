@@ -3,7 +3,7 @@
 //6 analog inputs
 
 /* Used pins */
-//0 2 3 4 5 6 7 8 9 10 11 11 13 A0 A1 A2 A3 A4 A5
+//0 1 2 3 4 5 6 7 8 9 10 11 11 13 A0 A1 A2 A3 A4 A5
 
 /*Unused pins */
 // 
@@ -55,6 +55,7 @@ int RingHeatDelay = 30;
 int RingCoolDelay = 50;
 
 bool CookerStatus = false;
+bool SomeoneClose = true;
 class Zwave
 {
   
@@ -312,8 +313,6 @@ void setup() {
   pinMode(StatusLedPin, OUTPUT );
 }
 
-
-
 // Run all the actions of the burner
 void BurnerActions()
 {
@@ -382,14 +381,17 @@ void ProximityCheck()
   cm = microsecondsToCentimeters(duration);
   pinMode(echoPin, INPUT);
   duration = pulseIn(echoPin, HIGH);
-  
-  if(CookerBurner1.IsHot() || CookerBurner2.IsHot())
+
+  // When someone goes to the cooker and it is hot, alarm the user
+  if((CookerBurner1.IsHot() || CookerBurner2.IsHot()) && SomeoneClose == false)
   {
     analogWrite(ledPin, 0);
     VoiceSpeakerModule.Play();
+    SomeoneClose =true;
   }
   else
   {
+    SomeoneClose =false;
     //ledValue = 255 - (cm * 3);
   }
 
