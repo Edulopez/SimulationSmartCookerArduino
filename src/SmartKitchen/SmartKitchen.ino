@@ -25,13 +25,13 @@
 #define StatusLedPin A5
 
 // Heat rings pin
-#define LowLedRingPin1 9
-#define MidLedRingPin1 10
-#define HighLedRingPin1 11
+#define LowLedRing1Pin 8
+#define MidLedRing1Pin 9
+#define HighLedRing1Pin 12
 
-#define LowLedRingPin2 1
-#define MidLedRingPin2 8
-#define HighLedRingPin2 13
+#define LowLedRing2Pin 11
+#define MidLedRing2Pin 10        
+#define HighLedRing2Pin 13
 
 // Switch pins
 #define SwitchPinsSize 3
@@ -44,13 +44,13 @@
 #define Switch2Pin3 A4
 
 //
-const int trigPin = 12;
+const int trigPin = 1;
 const int echoPin = 5;
 const int ledPin = 6;
 
 int Switch1Pins[SwitchPinsSize] = {Switch1Pin1,Switch1Pin2,Switch1Pin3};
 int Switch2Pins[SwitchPinsSize] = {Switch2Pin1,Switch2Pin2,Switch2Pin3};
-
+ 
 int RingHeatDelay = 30;
 int RingCoolDelay = 50;
 
@@ -99,12 +99,12 @@ class VoiceSpeaker
 
     void Play()
     {
-      Serial.print("Starting voice speaker sound");
-      digitalWrite(Pin, HIGH);
-      delay(3000);
-      digitalWrite(Pin, LOW);
-      Serial.print("Ending voice speaker sound");
-      delay(200);
+      //Serial.print("Starting voice speaker sound");
+     // digitalWrite(Pin, HIGH);
+      //delay(3000);
+      //digitalWrite(Pin, LOW);
+      //Serial.print("Ending voice speaker sound");
+      //delay(200);
     }
 };
 
@@ -141,10 +141,14 @@ class HeatRing
     // Heat the LEDs
     void Heat(bool heat = true)
     {
-      //Serial.print(Pin);
-      //Serial.print("--");
-      //Serial.print(Brightness);
-      //Serial.print("\n");
+      Serial.print("HeatRing: ");
+      Serial.print(Pin);
+      Serial.print("--");
+      Serial.print(Brightness);
+      Serial.print("\n");
+      Serial.print("Heat value: ");
+      Serial.print(heat);
+      Serial.print("\n");
       analogWrite(Pin, Brightness);
       
       // wait to see the dimming effect
@@ -284,19 +288,21 @@ class Switch
     // Get the intensity marked in the switch and ensure to read it
     int GetIntensity()
     {
+      
+      Serial.print("Switch Itensity: ");
       Serial.print(ConvertSwitchValueToIntensityValue(ReadValue(MaxReads)));
       Serial.print("\n");
       return ConvertSwitchValueToIntensityValue(ReadValue(MaxReads));
     }  
 };
 
-HeatRing LowHeatRing (LowLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
-HeatRing MidHeatRing (MidLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
-HeatRing HighHeatRing (HighLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing LowHeatRing (LowLedRing1Pin,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing MidHeatRing (MidLedRing1Pin,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing HighHeatRing (HighLedRing1Pin,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 
-HeatRing LowHeatRing2 (LowLedRingPin2,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
-HeatRing MidHeatRing2 (MidLedRingPin2,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
-HeatRing HighHeatRing2 (HighLedRingPin2,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing LowHeatRing2 (LowLedRing2Pin,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing MidHeatRing2 (MidLedRing2Pin,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing HighHeatRing2 (HighLedRing2Pin,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 
 Switch Switch1 (Switch1Pins,SwitchPinsSize,MAXSWITCHREADS);
 Switch Switch2 (Switch2Pins,SwitchPinsSize,MAXSWITCHREADS);
@@ -450,7 +456,7 @@ bool PanCheck()
    {
     Serial.println("There isn't a pan");
    }
-   delay(100);
+   //delay(100);
    
    return res;
 }
