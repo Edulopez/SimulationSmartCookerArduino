@@ -3,10 +3,10 @@
 //6 analog inputs
 
 /* Used pins */
-// 2 3 4 5 6 7 8 9 10 11 11 13
+//0 1 2 3 4 5 6 7 8 9 10 11 11 13 A0 A1 A2 A3 A4 A5
 
 /*Unused pins */
-// 1 14 analogs
+// 
 
 
 #define MAXHEAT 255
@@ -15,14 +15,25 @@
 
 /* Pins */
 #define PANSENSORPIN A0
-#define SpeakerPin 8
-#define VoiceSpeakerPin 13
-#define MoistureSensorPin 0
+#define PANSENSORPIN2 A1
 
+//#define SpeakerPin 8 // THERE ISNT A SPEAKER YET
+
+#define VoiceSpeakerPin 14
+#define WaterSensorPin 0
+
+#define StatusLedPin A5
+
+// Heat rings pin
 #define LowLedRingPin1 9
 #define MidLedRingPin1 10
 #define HighLedRingPin1 11
 
+#define LowLedRingPin2 1
+#define MidLedRingPin2 8
+#define HighLedRingPin2 13
+
+// Switch pins
 #define SwitchPinsSize 3
 #define Switch1Pin1 2
 #define Switch1Pin2 4
@@ -31,12 +42,19 @@
 #define trigPin 12
 #define echoPin 5
 
+#define Switch2Pin1 A2
+#define Switch2Pin2 A3
+#define Switch2Pin3 A4
+
 
 int Switch1Pins[SwitchPinsSize] = {Switch1Pin1,Switch1Pin2,Switch1Pin3};
+int Switch2Pins[SwitchPinsSize] = {Switch2Pin1,Switch2Pin2,Switch2Pin3};
 
 int RingHeatDelay = 30;
 int RingCoolDelay = 50;
 
+bool CookerStatus = false;
+bool SomeoneClose = true;
 class Zwave
 {
   
@@ -150,7 +168,7 @@ class HeatRing
 };
 
 class CookerBurner
-{
+{ 
   HeatRing LowHeatRing;
   HeatRing MidHeatRing;
   HeatRing HighHeatRing;
@@ -174,11 +192,11 @@ class CookerBurner
       HighHeatRing.GetTempeture());
     }
     // Heat the LEDs
-    void Heat(bool heat = true)
+    void Heat(int powerValue)
     {
-      LowHeatRing.Heat (heat);
-      MidHeatRing.Heat (heat);
-      HighHeatRing.Heat(heat);
+      LowHeatRing.Heat (powerValue > 0);
+      MidHeatRing.Heat (powerValue > 1);
+      HighHeatRing.Heat(powerValue > 2);
     }
 };
 
@@ -245,7 +263,6 @@ class Switch
         switchValues = switchValues >> 1;
         intensityValue++;
       }
-
       return 0; // off as a base case
     }
     
@@ -269,73 +286,88 @@ class Switch
       Serial.print(ConvertSwitchValueToIntensityValue(ReadValue(MaxReads)));
       Serial.print("\n");
       return ConvertSwitchValueToIntensityValue(ReadValue(MaxReads));
-    }
-
-  
+    }  
 };
 
 HeatRing LowHeatRing (LowLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 HeatRing MidHeatRing (MidLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 HeatRing HighHeatRing (HighLedRingPin1,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
 
+HeatRing LowHeatRing2 (LowLedRingPin2,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing MidHeatRing2 (MidLedRingPin2,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+HeatRing HighHeatRing2 (HighLedRingPin2,FADEAMOUNT,RingHeatDelay,RingCoolDelay,0);
+
 Switch Switch1 (Switch1Pins,SwitchPinsSize,MAXSWITCHREADS);
+Switch Switch2 (Switch2Pins,SwitchPinsSize,MAXSWITCHREADS);
 
 VoiceSpeaker VoiceSpeakerModule(VoiceSpeakerPin);
 
 Zwave ZWaveModule = Zwave();
 CookerBurner CookerBurner1(LowHeatRing,MidHeatRing,HighHeatRing);
+CookerBurner CookerBurner2(LowHeatRing2,MidHeatRing2,HighHeatRing2);
+
 void setup() {
   Serial.begin(9600);
-}
-
-// Read the switch and get the value of the intensity from 0 to 3
-int PowerSwitchCheck()
-{
-  return Switch1.GetIntensity();
+  pinMode(WaterSensorPin, INPUT );
+  pinMode(StatusLedPin, OUTPUT );
 }
 
 // Run all the actions of the burner
 void BurnerActions()
 {
-  int powerValue = PowerSwitchCheck(); 
-  PowerVoiceFeedback(powerValue);
-  PowerVisualFeedback(powerValue);
-  BoilingCheck();
-  PanCheck();
+  int powerValueSwitch1 = Switch1.GetIntensity();
+  int powerValueSwitch2 = Switch2.GetIntensity(); 
+  
+  PowerVoiceFeedback(powerValueSwitch1+powerValueSwitch2);
+  PowerVisualFeedback(powerValueSwitch1+powerValueSwitch2);
+  
+  bool isBoiling = BoilingCheck();
+  bool isPan = PanCheck();
   ProximityCheck();
-  LedPowerModule(powerValue);
+  LedPowerModule(powerValueSwitch1,powerValueSwitch2); 
 }
 void SentZwateData()
 {
   ZWaveModule.SendRingSettings(Switch1.GetIntensity(), 1);
   ZWaveModule.SendRingTempeture(CookerBurner1.GetTempeture(), 1);
+  ZWaveModule.SendRingSettings(Switch2.GetIntensity(), 2);
+  ZWaveModule.SendRingTempeture(CookerBurner2.GetTempeture(), 2);
   ZWaveModule.SendBoilOverData(BoilingCheck);
 }
 //Sound feedback depending on the power value
 void PowerVoiceFeedback(int powerValue)
 {
-  if(powerValue > 0)
+  if(powerValue > 0 && CookerStatus == false)
     VoiceSpeakerModule.Play();
+
+    CookerStatus = powerValue > 0;
 }
 
 //Visual feedback depending on the power value
 void PowerVisualFeedback(int powerValue)
 {
-  
+  if(powerValue > 0)
+  {
+     digitalWrite(StatusLedPin, HIGH);   // turn the LED on (HIGH is the voltage level)
+  }
+  else
+     digitalWrite(StatusLedPin, LOW);   // turn the LED on (HIGH is the voltage level)
 }
 
 // Control the intensity and the number of heat rings on
-void LedPowerModule(int powerValue)
+void LedPowerModule(int powerValue1,int powerValue2)
 {
   //Simulate the heating and cooling process of the leds
   // Control the intensity  or amount of heat rings on
-   CookerBurner1.Heat(powerValue);
+   
+   CookerBurner1.Heat(powerValue1);
+   CookerBurner2.Heat(powerValue2);
 }
 
 // Check if someone is close to the burner and give feedbacks
 void ProximityCheck()
 {
-  // The trigpin sends out a signal, whoch bounces off an obstacle and comes back
+   // The trigpin sends out a signal, whoch bounces off an obstacle and comes back
   // Echopin recieves this signal and gives out +5v setting the aurduino pin on which is connected to high
   // 
   Serial.begin(9600);
@@ -359,51 +391,54 @@ void ProximityCheck()
     Serial.println("Out of range");
   }
 
+
 }
 
 // Check is something is boiling and gives feedback
 int BoilingCheck()
 {
   int waterSensorValue;
-  waterSensorValue = analogRead(MoistureSensorPin);
+  waterSensorValue = digitalRead(WaterSensorPin);
   Serial.print("moisture sensor reads: ");
   Serial.println(waterSensorValue);
 
-  int sensor0Reading = analogRead (SpeakerPin); //read input for frequency
-  int frequency = map(sensor0Reading, 0, 1023, 100, 5000);
-  int duration = 3000; //time sound last (ms)
+  //int sensor0Reading = analogRead (SpeakerPin); //read input for frequency
+  //int frequency = map(sensor0Reading, 0, 1023, 100, 5000);
+  //int duration = 3000; //time sound last (ms)
 
-  if (waterSensorValue > 0)
+  if (waterSensorValue == HIGH)
   {
-    MakeSound(frequency,duration);
-    return waterSensorValue;
+    //MakeSound(frequency,duration);
   }
-  delay(500);
+  delay(200);
+  return waterSensorValue == HIGH;
 }
 
 // Check if a pan is on the burner
 bool PanCheck()
 {
    int sensorValue = 0;
+   int sensorValue2 =0;
    // results are not %100 accurate, but it will do for now
    sensorValue = analogRead(PANSENSORPIN);
-   if (sensorValue < 300) 
+   sensorValue2 = analogRead(PANSENSORPIN2);
+   bool res = sensorValue < 300 || sensorValue2 < 300;
+   if (res) 
    {
-    Serial.println("It's on!");
+    Serial.println("There's  a pan on");
    }
    else
    {
-    Serial.println("It's off!");
+    Serial.println("There isn't a pan");
    }
-   return sensorValue < 300;
    delay(100);
+   
+   return res;
 }
 
-void MakeSound(int frequency,int  duration)
-{
-  tone(SpeakerPin, frequency, duration); //speakerPin, frequency, duration
-}
 
-void loop() {
+
+void loop() 
+{ 
  BurnerActions();
 }
