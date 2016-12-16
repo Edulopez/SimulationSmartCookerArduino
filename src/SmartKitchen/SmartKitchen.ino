@@ -28,9 +28,9 @@
 #define Switch1Pin2 4
 #define Switch1Pin3 7
 
-const int trigPin = 12;
-const int echoPin = 5;
-const int ledPin = 6;
+#define trigPin 12
+#define echoPin 5
+
 
 int Switch1Pins[SwitchPinsSize] = {Switch1Pin1,Switch1Pin2,Switch1Pin3};
 
@@ -335,49 +335,33 @@ void LedPowerModule(int powerValue)
 // Check if someone is close to the burner and give feedbacks
 void ProximityCheck()
 {
-  long duration, inches, cm;
-  
-  pinMode(trigPin, OUTPUT);
-  digitalWrite(trigPin, LOW);
+  // The trigpin sends out a signal, whoch bounces off an obstacle and comes back
+  // Echopin recieves this signal and gives out +5v setting the aurduino pin on which is connected to high
+  // 
+  Serial.begin(9600);
+  pinMode(trigPin, OUTPUT); //set trigpin as output
+  pinMode(echoPin, INPUT);  //set echopin as input
+ 
+  long duration, distance;
+  digitalWrite(trigPin, LOW); 
   delayMicroseconds(2);
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-
-  inches = microsecondsToInches(duration);
-  cm = microsecondsToCentimeters(duration);
-  pinMode(echoPin, INPUT);
   duration = pulseIn(echoPin, HIGH);
-  
-  if(LowHeatRing.IsHot())
-  {
-    analogWrite(ledPin, 0);
+  distance = (duration/2) / 29.1;
+
+  if (distance > 20 && distance <= 80)  {
     VoiceSpeakerModule.Play();
-  }
-  else
-  {
-    //ledValue = 255 - (cm * 3);
+    delay(200);
   }
 
-  Serial.print(inches);
-  Serial.print("in, ");
-  Serial.print(cm);
-  Serial.print("cm");
-  Serial.println();
-  delay(100);
-}
-long microsecondsToInches(long microseconds)
-{
-  return microseconds / 74 / 2;
-}
- 
-long microsecondsToCentimeters(long microseconds)
-{
-  return microseconds / 29 / 2;
-}
-  
+   else {
+    Serial.println("Out of range");
+  }
 
-// Check is something is boiling and gives feedbacks
+}
+
+// Check is something is boiling and gives feedback
 int BoilingCheck()
 {
   int waterSensorValue;
