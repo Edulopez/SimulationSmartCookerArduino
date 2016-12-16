@@ -25,13 +25,12 @@
 #define StatusLedPin A5
 
 // Heat rings pin
-#define LowLedRing1Pin 8
-#define MidLedRing1Pin 9
-#define HighLedRing1Pin 12
-
-#define LowLedRing2Pin 11
-#define MidLedRing2Pin 10        
-#define HighLedRing2Pin 13
+#define LowLedRing1Pin 9
+#define MidLedRing1Pin 10
+#define HighLedRing1Pin 11
+#define LowLedRing2Pin 3
+#define MidLedRing2Pin 5        
+#define HighLedRing2Pin 6
 
 // Switch pins
 #define SwitchPinsSize 3
@@ -40,19 +39,12 @@
 #define Switch1Pin3 7
 
 #define trigPin 12
-#define echoPin 5
+#define echoPin 1
 
 #define Switch2Pin1 A2
 #define Switch2Pin2 A3
 #define Switch2Pin3 A4
 
-<<<<<<< HEAD
-//
-const int trigPin = 1;
-const int echoPin = 5;
-const int ledPin = 6;
-=======
->>>>>>> 58eae2fb1c345e039abca638fb93542f834be532
 
 int Switch1Pins[SwitchPinsSize] = {Switch1Pin1,Switch1Pin2,Switch1Pin3};
 int Switch2Pins[SwitchPinsSize] = {Switch2Pin1,Switch2Pin2,Switch2Pin3};
