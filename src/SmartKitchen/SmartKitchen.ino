@@ -39,14 +39,20 @@
 #define Switch1Pin2 4
 #define Switch1Pin3 7
 
+#define trigPin 12
+#define echoPin 5
+
 #define Switch2Pin1 A2
 #define Switch2Pin2 A3
 #define Switch2Pin3 A4
 
+<<<<<<< HEAD
 //
 const int trigPin = 1;
 const int echoPin = 5;
 const int ledPin = 6;
+=======
+>>>>>>> 58eae2fb1c345e039abca638fb93542f834be532
 
 int Switch1Pins[SwitchPinsSize] = {Switch1Pin1,Switch1Pin2,Switch1Pin3};
 int Switch2Pins[SwitchPinsSize] = {Switch2Pin1,Switch2Pin2,Switch2Pin3};
@@ -374,53 +380,35 @@ void LedPowerModule(int powerValue1,int powerValue2)
 // Check if someone is close to the burner and give feedbacks
 void ProximityCheck()
 {
-  long duration, inches, cm;
-  
-  pinMode(trigPin, OUTPUT);
-  digitalWrite(trigPin, LOW);
+   // The trigpin sends out a signal, whoch bounces off an obstacle and comes back
+  // Echopin recieves this signal and gives out +5v setting the aurduino pin on which is connected to high
+  // 
+  Serial.begin(9600);
+  pinMode(trigPin, OUTPUT); //set trigpin as output
+  pinMode(echoPin, INPUT);  //set echopin as input
+ 
+  long duration, distance;
+  digitalWrite(trigPin, LOW); 
   delayMicroseconds(2);
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-
-  inches = microsecondsToInches(duration);
-  cm = microsecondsToCentimeters(duration);
-  pinMode(echoPin, INPUT);
   duration = pulseIn(echoPin, HIGH);
+  distance = (duration/2) / 29.1;
 
-  // When someone goes to the cooker and it is hot, alarm the user
-  if((CookerBurner1.IsHot() || CookerBurner2.IsHot()) && SomeoneClose == false)
-  {
-    analogWrite(ledPin, 0);
+  if (distance > 20 && distance <= 80)  {
     VoiceSpeakerModule.Play();
-    SomeoneClose =true;
-  }
-  else
-  {
-    SomeoneClose =false;
-    //ledValue = 255 - (cm * 3);
+    delay(200);
   }
 
-  Serial.print(inches);
-  Serial.print("in, ");
-  Serial.print(cm);
-  Serial.print("cm");
-  Serial.println();
-  delay(100);
-}
-long microsecondsToInches(long microseconds)
-{
-  return microseconds / 74 / 2;
-}
- 
-long microsecondsToCentimeters(long microseconds)
-{
-  return microseconds / 29 / 2;
-}
-  
+   else {
+    Serial.println("Out of range");
+  }
 
-// Check is something is boiling and gives feedbacks
-bool BoilingCheck()
+
+}
+
+// Check is something is boiling and gives feedback
+int BoilingCheck()
 {
   int waterSensorValue;
   waterSensorValue = digitalRead(WaterSensorPin);
