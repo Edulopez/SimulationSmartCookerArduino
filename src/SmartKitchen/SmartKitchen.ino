@@ -3,47 +3,47 @@
 //6 analog inputs
 
 /* Used pins */
-//0 1 2 3 4 5 6 7 8 9 10 11 11 13 A0 A1 A2 A3 A4 A5
+//0 1 2 3 4 5 6 7  9 10 11 11  A0 A1 A2 A3 A4 13
 
 /*Unused pins */
-// 
+// a5 8 
 
 
-#define MAXHEAT 255
+#define MAXHEAT 50
 #define MAXSWITCHREADS 2
 #define FADEAMOUNT 1 // how many points to fade the LED by
 
 /* Pins */
-#define PANSENSORPIN A0
-#define PANSENSORPIN2 A1
+#define PANSENSORPIN A0  //
+#define PANSENSORPIN2 A1 //
 
 //#define SpeakerPin 8 // THERE ISNT A SPEAKER YET
 
-#define VoiceSpeakerPin 14
-#define WaterSensorPin 0
+#define VoiceSpeakerPin 13 //
+#define WaterSensorPin A5 //
 
-#define StatusLedPin A5
+#define StatusLedPin 0 //
+
+#define trigPin 12 //-
+#define echoPin 1 //-
 
 // Heat rings pin
-#define LowLedRing1Pin 9
-#define MidLedRing1Pin 10
-#define HighLedRing1Pin 11
-#define LowLedRing2Pin 3
-#define MidLedRing2Pin 5        
-#define HighLedRing2Pin 6
+#define LowLedRing1Pin 9 //
+#define MidLedRing1Pin 10 //
+#define HighLedRing1Pin 11 //
+#define LowLedRing2Pin 3 //
+#define MidLedRing2Pin 5   //      
+#define HighLedRing2Pin 6 //
 
 // Switch pins
-#define SwitchPinsSize 3
-#define Switch1Pin1 2
-#define Switch1Pin2 4
-#define Switch1Pin3 7
+#define SwitchPinsSize 3 
+#define Switch1Pin1 2 //-
+#define Switch1Pin2 4 //-
+#define Switch1Pin3 7 //-
 
-#define trigPin 12
-#define echoPin 1
-
-#define Switch2Pin1 A2
-#define Switch2Pin2 A3
-#define Switch2Pin3 A4
+#define Switch2Pin1 A2 //-
+#define Switch2Pin2 A3 //-
+#define Switch2Pin3 A4 //-
 
 
 int Switch1Pins[SwitchPinsSize] = {Switch1Pin1,Switch1Pin2,Switch1Pin3};
@@ -97,12 +97,12 @@ class VoiceSpeaker
 
     void Play()
     {
-      //Serial.print("Starting voice speaker sound");
-     // digitalWrite(Pin, HIGH);
-      //delay(3000);
-      //digitalWrite(Pin, LOW);
-      //Serial.print("Ending voice speaker sound");
-      //delay(200);
+      Serial.print("Starting voice speaker sound");
+      digitalWrite(Pin, HIGH);
+      delay(3000);
+      digitalWrite(Pin, LOW);
+      Serial.print("Ending voice speaker sound");
+      delay(200);
     }
 };
 
@@ -315,6 +315,8 @@ void setup() {
   Serial.begin(9600);
   pinMode(WaterSensorPin, INPUT );
   pinMode(StatusLedPin, OUTPUT );
+  pinMode(trigPin, OUTPUT); //set trigpin as output
+  pinMode(echoPin, INPUT);  //set echopin as input
 }
 
 // Run all the actions of the burner
@@ -322,7 +324,7 @@ void BurnerActions()
 {
   int powerValueSwitch1 = Switch1.GetIntensity();
   int powerValueSwitch2 = Switch2.GetIntensity(); 
-  
+
   PowerVoiceFeedback(powerValueSwitch1+powerValueSwitch2);
   PowerVisualFeedback(powerValueSwitch1+powerValueSwitch2);
   
@@ -363,8 +365,7 @@ void PowerVisualFeedback(int powerValue)
 void LedPowerModule(int powerValue1,int powerValue2)
 {
   //Simulate the heating and cooling process of the leds
-  // Control the intensity  or amount of heat rings on
-   
+  // Control the intensity  or amount of heat rings on 
    CookerBurner1.Heat(powerValue1);
    CookerBurner2.Heat(powerValue2);
 }
@@ -374,10 +375,6 @@ void ProximityCheck()
 {
    // The trigpin sends out a signal, whoch bounces off an obstacle and comes back
   // Echopin recieves this signal and gives out +5v setting the aurduino pin on which is connected to high
-  // 
-  Serial.begin(9600);
-  pinMode(trigPin, OUTPUT); //set trigpin as output
-  pinMode(echoPin, INPUT);  //set echopin as input
  
   long duration, distance;
   digitalWrite(trigPin, LOW); 
@@ -388,12 +385,13 @@ void ProximityCheck()
   distance = (duration/2) / 29.1;
 
   if (distance > 20 && distance <= 80)  {
-    VoiceSpeakerModule.Play();
-    delay(200);
+    if(SomeoneClose == false)
+      VoiceSpeakerModule.Play();
+    SomeoneClose = true;
   }
-
    else {
-    Serial.println("Out of range");
+    SomeoneClose = false;
+    //Serial.println("Out of range");
   }
 
 
@@ -403,7 +401,7 @@ void ProximityCheck()
 int BoilingCheck()
 {
   int waterSensorValue;
-  waterSensorValue = digitalRead(WaterSensorPin);
+  waterSensorValue = analogRead(WaterSensorPin);
   Serial.print("moisture sensor reads: ");
   Serial.println(waterSensorValue);
 
@@ -411,12 +409,12 @@ int BoilingCheck()
   //int frequency = map(sensor0Reading, 0, 1023, 100, 5000);
   //int duration = 3000; //time sound last (ms)
 
-  if (waterSensorValue == HIGH)
+  if (waterSensorValue > 3)
   {
     //MakeSound(frequency,duration);
   }
   delay(200);
-  return waterSensorValue == HIGH;
+  return waterSensorValue;
 }
 
 // Check if a pan is on the burner
@@ -427,14 +425,18 @@ bool PanCheck()
    // results are not %100 accurate, but it will do for now
    sensorValue = analogRead(PANSENSORPIN);
    sensorValue2 = analogRead(PANSENSORPIN2);
-   bool res = sensorValue < 300 || sensorValue2 < 300;
+
+   Serial.println("Ligth sensor:");
+   Serial.println(sensorValue);
+   Serial.println(sensorValue2);
+   bool res = sensorValue > 0 || sensorValue2 > 0;
    if (res) 
    {
-    Serial.println("There's  a pan on");
+      Serial.println("There's  a pan on");
    }
    else
    {
-    Serial.println("There isn't a pan");
+      Serial.println("There isn't a pan");
    }
    //delay(100);
    
