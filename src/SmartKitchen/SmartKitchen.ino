@@ -3,10 +3,10 @@
 //6 analog inputs
 
 /* Used pins */
-//0 1 2 3 4 5 6 7  9 10 11 11  A0 A1 A2 A3 A4 13
+//0  2 3 4 5 6 7 8  9 10 11 11  A0 A1 A2 A3 A4 13
 
 /*Unused pins */
-// a5 8 
+// 1
 
 
 #define MAXHEAT 50
@@ -20,12 +20,13 @@
 //#define SpeakerPin 8 // THERE ISNT A SPEAKER YET
 
 #define VoiceSpeakerPin 13 //
+
 #define WaterSensorPin A5 //
 
 #define StatusLedPin 0 //
 
 #define trigPin 12 //-
-#define echoPin 1 //-
+#define echoPin 8 //-
 
 // Heat rings pin
 #define LowLedRing1Pin 9 //
@@ -97,9 +98,10 @@ class VoiceSpeaker
 
     void Play()
     {
-      Serial.print("Starting voice speaker sound");
+      Serial.println("Starting voice speaker sound");
+     // return;
       digitalWrite(Pin, HIGH);
-      delay(3000);
+      delay(2000);
       digitalWrite(Pin, LOW);
       Serial.print("Ending voice speaker sound");
       delay(200);
@@ -139,14 +141,14 @@ class HeatRing
     // Heat the LEDs
     void Heat(bool heat = true)
     {
-      Serial.print("HeatRing: ");
-      Serial.print(Pin);
-      Serial.print("--");
-      Serial.print(Brightness);
-      Serial.print("\n");
-      Serial.print("Heat value: ");
-      Serial.print(heat);
-      Serial.print("\n");
+      //Serial.print("HeatRing: ");
+      //Serial.print(Pin);
+      //Serial.print("--");
+      //Serial.print(Brightness);
+      //Serial.print("\n");
+      //Serial.print("Heat value: ");
+      //Serial.print(heat);
+      //Serial.print("\n");
       analogWrite(Pin, Brightness);
       
       // wait to see the dimming effect
@@ -373,9 +375,10 @@ void LedPowerModule(int powerValue1,int powerValue2)
 // Check if someone is close to the burner and give feedbacks
 void ProximityCheck()
 {
+
    // The trigpin sends out a signal, whoch bounces off an obstacle and comes back
   // Echopin recieves this signal and gives out +5v setting the aurduino pin on which is connected to high
- 
+
   long duration, distance;
   digitalWrite(trigPin, LOW); 
   delayMicroseconds(2);
@@ -384,14 +387,25 @@ void ProximityCheck()
   duration = pulseIn(echoPin, HIGH);
   distance = (duration/2) / 29.1;
 
-  if (distance > 20 && distance <= 80)  {
+  Serial.print("Proximity check: ");
+  //Serial.print(duration);
+  Serial.print(distance);
+  Serial.print("\n");
+  
+  if(!CookerBurner1.IsHot() && ! CookerBurner2.IsHot())
+    return;
+    
+  if (distance > 1   && distance <= 40)  {
     if(SomeoneClose == false)
       VoiceSpeakerModule.Play();
+    
     SomeoneClose = true;
+    
+   // Serial.println("Someone in Range");
   }
    else {
     SomeoneClose = false;
-    //Serial.println("Out of range");
+   // Serial.println("Out of range");
   }
 
 
@@ -403,15 +417,21 @@ int BoilingCheck()
   int waterSensorValue;
   waterSensorValue = analogRead(WaterSensorPin);
   Serial.print("moisture sensor reads: ");
-  Serial.println(waterSensorValue);
+  Serial.print(waterSensorValue);
+  Serial.print("\n");
 
   //int sensor0Reading = analogRead (SpeakerPin); //read input for frequency
   //int frequency = map(sensor0Reading, 0, 1023, 100, 5000);
   //int duration = 3000; //time sound last (ms)
 
-  if (waterSensorValue > 3)
+  if (waterSensorValue > 450)
   {
-    //MakeSound(frequency,duration);
+    digitalWrite(StatusLedPin, HIGH);   
+    delay(200);                       
+    digitalWrite(StatusLedPin, LOW); 
+    delay(100);  
+    digitalWrite(StatusLedPin, HIGH);
+    //VoiceSpeakerModule.Play();
   }
   delay(200);
   return waterSensorValue;
@@ -426,26 +446,25 @@ bool PanCheck()
    sensorValue = analogRead(PANSENSORPIN);
    sensorValue2 = analogRead(PANSENSORPIN2);
 
-   Serial.println("Ligth sensor:");
-   Serial.println(sensorValue);
-   Serial.println(sensorValue2);
+   //Serial.println("Ligth sensor:");
+   //Serial.println(sensorValue);
+   //Serial.println(sensorValue2);
    bool res = sensorValue > 0 || sensorValue2 > 0;
    if (res) 
    {
-      Serial.println("There's  a pan on");
+      //Serial.println("There's  a pan on");
    }
    else
    {
-      Serial.println("There isn't a pan");
+      //Serial.println("There isn't a pan");
    }
-   //delay(100);
+   delay(100);
    
    return res;
 }
 
-
-
 void loop() 
 { 
  BurnerActions();
+ Serial.println("-");
 }
