@@ -17,8 +17,6 @@
 #define PANSENSORPIN A0  //
 #define PANSENSORPIN2 A1 //
 
-//#define SpeakerPin 8 // THERE ISNT A SPEAKER YET
-
 #define VoiceSpeakerPin 13 //
 
 #define WaterSensorPin A5 //
@@ -466,5 +464,4 @@ bool PanCheck()
 void loop() 
 { 
  BurnerActions();
- Serial.println("-");
 }
